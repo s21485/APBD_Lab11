@@ -76,9 +76,22 @@ public class PrescriptionController : ControllerBase
         {
             return BadRequest("Przekroczone maksymalną liczbę leków (10) na recepcie.");
         }
-		return null;
         
-		
+        var medicamentIds = prescriptionDto.Medicaments.Select(m => m.IdMedicament).ToList();
+        var existingMedicaments = await _context.Medicaments
+            .Where(m => medicamentIds.Contains(m.IdMedicament))
+            .Select(m => m.IdMedicament)
+            .ToListAsync();
+        if (existingMedicaments.Count != medicamentIds.Count)
+        {
+            return BadRequest("Któreś z podanych leków nie istnieją w bazie danych.")
+        }
+
+        var doctor = await _context.Doctors.FindAsync(prescriptionDto.Doctor.IdDoctor);
+        if (doctor == null)
+            return BadRequest("Doktor o podanym ID nie istnieje.");
+
+        return Ok();
     }
 
 
