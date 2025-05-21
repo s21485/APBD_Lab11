@@ -84,14 +84,53 @@ public class PrescriptionController : ControllerBase
             .ToListAsync();
         if (existingMedicaments.Count != medicamentIds.Count)
         {
-            return BadRequest("Któreś z podanych leków nie istnieją w bazie danych.")
+            return BadRequest("Któreś z podanych leków nie istnieją w bazie danych.");
         }
 
         var doctor = await _context.Doctors.FindAsync(prescriptionDto.Doctor.IdDoctor);
         if (doctor == null)
             return BadRequest("Doktor o podanym ID nie istnieje.");
+        
+        var patient = await _context.Patients.FirstOrDefaultAsync(p =>
+            prescriptionDto.Patient.IdPatient.HasValue && 
+            p.IdPatient == prescriptionDto.Patient.IdPatient);
 
-        return Ok();
+        if (patient == null)
+        {
+            patient = new Models.Patient
+            {
+                FirstName = prescriptionDto.Patient.FirstName,
+                LastName = prescriptionDto.Patient.LastName,
+                BirthDate = prescriptionDto.Patient.BirthDate
+            };
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync();
+        }
+
+        var prescription = new Models.Prescription
+        {
+            Date = prescriptionDto.Date,
+            DueDate = prescriptionDto.DueDate,
+            IdDoctor = prescriptionDto.Doctor.IdDoctor,
+            IdPatient = patient.IdPatient
+        };
+        _context.Prescriptions.Add(prescription);
+        await _context.SaveChangesAsync();
+
+        foreach (var medicamentDto in prescriptionDto.Medicaments)
+        {
+            var medicament = new Models.Prescription_Medicament()
+            {
+                IdMedicament = medicamentDto.IdMedicament,
+                Dose = medicamentDto.Dose,
+                Details = medicamentDto.Details,
+                IdPrescription = prescription.IdPrescription
+            };
+            _context.Prescription_Medicaments.Add(medicament);
+        }
+        
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetPatientDetails), new { id = patient.IdPatient }, "Recepta dodana.");
     }
 
 
