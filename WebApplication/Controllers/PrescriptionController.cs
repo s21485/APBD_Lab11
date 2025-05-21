@@ -64,5 +64,19 @@ public class PrescriptionController : ControllerBase
         return Ok(patientDTO);
     }
 
+    [HttpPost]
+    public async Task<ActionResult> AddPrescription(PrescriptionDTO prescriptionDto)
+    {
+        if (prescriptionDto.DueDate < prescriptionDto.Date)
+        {
+            return BadRequest("Data ważności nie może być wcześniej niż data wystawienia.")
+        }
+
+        if (prescriptionDto.Medicaments.Count > 10)
+        {
+            return BadRequest("Przekroczone maksymalną liczbę leków (10) na recepcie.")
+        }
+    }
+
 
 }
