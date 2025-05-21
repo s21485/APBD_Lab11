@@ -45,7 +45,7 @@ public class PrescriptionController : ControllerBase
                     IdPrescription = p.IdPrescription,
                     Date = p.Date,
                     DueDate = p.DueDate,
-                    Doctor = new DoctorDto
+                    Doctor = new GetDoctorDto
                     {
                         IdDoctor = p.Doctor.IdDoctor,
                         FirstName = p.Doctor.FirstName,
@@ -69,13 +69,16 @@ public class PrescriptionController : ControllerBase
     {
         if (prescriptionDto.DueDate < prescriptionDto.Date)
         {
-            return BadRequest("Data ważności nie może być wcześniej niż data wystawienia.")
+            return BadRequest("Data ważności nie może być wcześniej niż data wystawienia.");
         }
 
         if (prescriptionDto.Medicaments.Count > 10)
         {
-            return BadRequest("Przekroczone maksymalną liczbę leków (10) na recepcie.")
+            return BadRequest("Przekroczone maksymalną liczbę leków (10) na recepcie.");
         }
+		return null;
+        
+		
     }
 
 
